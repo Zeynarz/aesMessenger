@@ -14,9 +14,8 @@
 //b3,b7,b11,b15
 //]
 
-//int plaintext[16] = {0x04,0x66,0x81,0xe5,0xe0,0xcb,0x19,0x9a,0x48,0xf8,0xd3,0x7a,0x28,0x06,0x26,0x4c};
-int plaintext[16] = {0x63,0x2f,0xaf,0xa2,0xeb,0x93,0xc7,0x20,0x9f,0x92,0xab,0xcb,0xa0,0xc0,0x30,0x2b};
-int key[16] = {0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+int plaintext[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
+int key[16] = {0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48};
 
 //operation functions
 int* subBytes(int word[16],int isRotWord);
@@ -28,10 +27,25 @@ int* cpyArray(int src[16],int dest[16]);
 int convertToByte(int target);
 
 //testing functions
-void printHex(int word[16]); //converted
+void printHex(int word[16]); 
 
 void main(){
-   printHex(keySchedule(key,1));
+    //before round start
+    addRoundKey(plaintext,key);
+    //main rounds
+    for (int i = 1; i <= 9;i++){
+        subBytes(plaintext,false);
+        shiftRows(plaintext);
+        mixColumns(plaintext);
+        keySchedule(key,i);
+        addRoundKey(plaintext,key);
+    }
+    //after main rounds
+    keySchedule(key,10);
+    subBytes(plaintext,false);
+    shiftRows(plaintext);
+    addRoundKey(plaintext,key);
+    printHex(plaintext);
 }
 
 int* subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
@@ -62,11 +76,11 @@ int* subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
     //JKLM will become 4a4b4c4d
     if (isRotWord == false){
         for (int i = 0 , plusHex = 0; i < 16; ++i , plusHex += 2){
-            sprintf(hex + plusHex,"%02x",word[i]);
+            sprintf(hex + plusHex,"%02x",word[i] & 0xff);
         }
     } else {
         for (int i = 0 , plusHex = 0; i < 4; ++i , plusHex += 2){
-            sprintf(hex + plusHex,"%02x",word[i]);
+            sprintf(hex + plusHex,"%02x",word[i] & 0xff);
         }
     }
     //convert hex to decimal for example a will be 16 but 1 will still be 1 so it could be used as indexes in array
@@ -104,9 +118,9 @@ int* keySchedule(int roundkey[16],int round){
     roundkey[0] = key[0] ^ rotword[0] ^ rc; //^ round constant 
     for (int i = 1;i <= 15;i++){
         if (i < 4){
-            roundkey[i] = roundkey[i] ^ rotword[i]; 
+            roundkey[i] = convertToByte(roundkey[i] ^ rotword[i]); 
         } else {
-            roundkey[i] = roundkey[i] ^ roundkey[i - 4];
+            roundkey[i] = convertToByte(roundkey[i] ^ roundkey[i - 4]);
         }
     }
 
@@ -182,7 +196,7 @@ int* mixColumns(int plaintext[16]){
 
 int* addRoundKey(int word[16],int key[16]){
     for (int i = 0;i <= 15;i++){
-        word[i] = word[i] ^ key[i];
+        word[i] = convertToByte(word[i] ^ key[i]);
     }
     return word;
 }
