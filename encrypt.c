@@ -115,6 +115,12 @@ int* keySchedule(int roundkey[16],int round){
 
     //xor
     int rc = pow(2,round - 1);
+    if (round >= 9){
+        rc ^= 0x11b;
+        if (round == 10){
+            rc = 32 + 16 + 4 + 2;
+        }
+    }
     roundkey[0] = key[0] ^ rotword[0] ^ rc; //^ round constant 
     for (int i = 1;i <= 15;i++){
         if (i < 4){
