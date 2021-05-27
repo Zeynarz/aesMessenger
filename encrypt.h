@@ -1,22 +1,4 @@
-/* source code for own AES implementation */
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <math.h>
-#define true 1
-#define false 0
-
-//[
-//b0,b4,b8 ,b12
-//b1,b5,b9 ,b13
-//b2,b6,b10,b14
-//b3,b7,b11,b15
-//]
-
-int plaintext[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
-int key[16] = {0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48,0x45,0x46,0x47,0x48};
-
+#include "header.h"
 //operation functions
 int* subBytes(int word[16],int isRotWord);
 int* keySchedule(int key[16],int round); 
@@ -24,12 +6,13 @@ int* addRoundKey(int plaintext[16],int key[16]);
 int* shiftRows(int plaintext[16]); 
 int* mixColumns(int plaintext[16]);
 int* cpyArray(int src[16],int dest[16]);
+int* encrypt(int plaintext[16],int key[16]);
 int convertToByte(int target);
 
 //testing functions
 void printHex(int word[16]); 
 
-void main(){
+int* encrypt(int plaintext[16],int key[16]){
     //before round start
     addRoundKey(plaintext,key);
     //main rounds
@@ -45,7 +28,7 @@ void main(){
     subBytes(plaintext,false);
     shiftRows(plaintext);
     addRoundKey(plaintext,key);
-    printHex(plaintext);
+    return plaintext;
 }
 
 int* subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
@@ -121,7 +104,7 @@ int* keySchedule(int roundkey[16],int round){
             rc = 32 + 16 + 4 + 2;
         }
     }
-    roundkey[0] = key[0] ^ rotword[0] ^ rc; //^ round constant 
+    roundkey[0] = roundkey[0] ^ rotword[0] ^ rc; //^ round constant 
     for (int i = 1;i <= 15;i++){
         if (i < 4){
             roundkey[i] = convertToByte(roundkey[i] ^ rotword[i]); 
@@ -225,6 +208,6 @@ void printHex(int word[16]){
         }
         printf("\n");
     }
-    printf("\n");
+    printf("\n"); //easier to see when printHex is called multiple times
 }
 
