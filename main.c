@@ -39,7 +39,6 @@ int main(){
         printHex(plaintext);
     }
     printf("%s\n",ciphertext);
-    
 }
 
 int* convertToIntArr(char* string,int* tempArr){
@@ -55,10 +54,11 @@ int* convertToIntArr(char* string,int* tempArr){
 }
 
 char* keyGen(char generatedKey[16]){
+    int index,randomNum;
     char printable[95] = " !\"#$%&'()*+,-./0123456789:;<=>?@1ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
-    srand(time(NULL)); //set the seed for random to current time
     for (int i = 0;i <= 15;i++){
-        int index = floor(((double)rand()/RAND_MAX) * 94);
+        getrandom(&randomNum,1,GRND_NONBLOCK); //get random num from /dev/urandom
+        index = floor(((double)randomNum/255) * 94);
         generatedKey[i] = printable[index];
     }
     return generatedKey;
