@@ -1,10 +1,10 @@
 #include "header.h"
 //operation functions
-int* subBytes(int word[16],int isRotWord);
-int* keySchedule(int key[16],int round); 
-int* addRoundKey(int plaintext[16],int key[16]);
-int* shiftRows(int plaintext[16]); 
-int* mixColumns(int plaintext[16]);
+void subBytes(int word[16],int isRotWord);
+void keySchedule(int key[16],int round); 
+void addRoundKey(int plaintext[16],int key[16]);
+void shiftRows(int plaintext[16]); 
+void mixColumns(int plaintext[16]);
 int* cpyArray(int src[16],int dest[16]);
 int* encrypt(int plaintext[16],int key[16]);
 int convertToByte(int target);
@@ -12,26 +12,39 @@ int convertToByte(int target);
 //testing functions
 void printHex(int word[16]); 
 
+//TESTING
+void main(){
+    int plaintext[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
+    int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
+    encrypt(plaintext,key);
+}
+
 int* encrypt(int plaintext[16],int key[16]){
     //before round start
     addRoundKey(plaintext,key);
+    printf("Round 0\n");
+    printHex(plaintext);
     //main rounds
     for (int i = 1; i <= 9;i++){
         subBytes(plaintext,false);
         shiftRows(plaintext);
         mixColumns(plaintext);
         keySchedule(key,i);
+        printf("Round %d\n",i);
+        printHex(key);
         addRoundKey(plaintext,key);
     }
     //after main rounds
     keySchedule(key,10);
+    printf("Round %d\n",10);
+    printHex(key);
     subBytes(plaintext,false);
     shiftRows(plaintext);
     addRoundKey(plaintext,key);
     return plaintext;
 }
 
-int* subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
+void subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
     int subBox[16][16] = {
     {0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76},
     {0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0},
@@ -77,11 +90,10 @@ int* subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
     }
     for (int i = 0, j = 0; i < strlen(hex); i += 2,j++) //strlen(hex) is probably 32
        word[j] = subBox[indexes[i]][indexes[i+1]];
-    
-    return word;
+
 }
 
-int* keySchedule(int roundkey[16],int round){
+void keySchedule(int roundkey[16],int round){
     /*get the last row of the key*/
     int rotword[4];
     int firstLetter;
@@ -95,7 +107,6 @@ int* keySchedule(int roundkey[16],int round){
     }
     rotword[3] = firstLetter;
     subBytes(rotword,true);
-
     //xor
     int rc = pow(2,round - 1);
     if (round >= 9){
@@ -113,10 +124,9 @@ int* keySchedule(int roundkey[16],int round){
         }
     }
 
-    return roundkey;
 }
 
-int* shiftRows(int word[16]){
+void shiftRows(int word[16]){
     int temp[16];
     //cpy array
     cpyArray(word,temp);
@@ -139,10 +149,9 @@ int* shiftRows(int word[16]){
     word[index+4] = temp[index+8];
     word[index+8] = temp[index+12];
     word[index+12] = temp[index];
-    return word;
 }
 
-int* mixColumns(int plaintext[16]){
+void mixColumns(int plaintext[16]){
     int matrix[16] = {
               2,3,1,1,
               1,2,3,1,
@@ -168,7 +177,6 @@ int* mixColumns(int plaintext[16]){
                     } else {
                         product = (letter << 1) ^ 0x1b;
                     }
-
                     if (num == 3){
                         product ^= letter; //product = (letter * 2) ^ (letter*1);
                     }
@@ -180,14 +188,12 @@ int* mixColumns(int plaintext[16]){
         }
     }
     cpyArray(temp,plaintext);
-    return plaintext;
 }
 
-int* addRoundKey(int word[16],int key[16]){
+void addRoundKey(int word[16],int key[16]){
     for (int i = 0;i <= 15;i++){
         word[i] = convertToByte(word[i] ^ key[i]);
     }
-    return word;
 }
 
 int* cpyArray(int src[16],int dest[16]){
@@ -195,7 +201,6 @@ int* cpyArray(int src[16],int dest[16]){
         dest[i] = src[i];
     }
 }
-
 int convertToByte(int target){ 
     return (target&0xff);
 }
@@ -210,4 +215,3 @@ void printHex(int word[16]){
     }
     printf("\n"); //easier to see when printHex is called multiple times
 }
-

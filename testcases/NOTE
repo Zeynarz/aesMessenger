@@ -1,0 +1,3 @@
+These are testcases for me to check if encryption and decryption is implemented correctly during development
+plaintext = ABCDABCDABCDABCD
+key = ABCDABCDABCDABCD

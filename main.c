@@ -1,6 +1,5 @@
 /* source code of own Aes implementation in C */
 #include "encrypt.h"
-
 int plaintext[16],key[17],tempArr[16];
 char generatedKey[16],userKey[16],convertStr[16],userInput[65];
 char ciphertext[150] = "";
@@ -8,12 +7,10 @@ char ciphertext[150] = "";
 int* convertToIntArr(char* string,int* tempArr);
 char* keyGen(char generatedKey[16]);
 void sanitize(char* string); //bool
-
 int main(){
     printf("Please enter the text you want to encrypt\n");
     fgets(userInput,65,stdin); //extra one char for null byte ,string ends in \x00 
     sanitize(userInput);
-
     printf("Please enter the key you want to use to encrypt\n");
     fgets(userKey,17,stdin); 
     sanitize(userKey);
@@ -36,11 +33,9 @@ int main(){
             sprintf(tempString,"%02x",plaintext[index]);
             strcat(ciphertext,tempString);
         }
-        printHex(plaintext);
     }
     printf("%s\n",ciphertext);
 }
-
 int* convertToIntArr(char* string,int* tempArr){
     int len = strlen(string);
     for (int i = 0;i <= 15;i++){
@@ -52,7 +47,6 @@ int* convertToIntArr(char* string,int* tempArr){
     }
     return tempArr;
 }
-
 char* keyGen(char generatedKey[16]){
     int index,randomNum;
     char printable[95] = " !\"#$%&'()*+,-./0123456789:;<=>?@1ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
@@ -63,7 +57,6 @@ char* keyGen(char generatedKey[16]){
     }
     return generatedKey;
 }
-
 void sanitize(char* string){
     int inputLen = strlen(string);
     //remove \n char if there is one
@@ -75,7 +68,6 @@ void sanitize(char* string){
         while (getchar() != 10)
             continue;
     }
-
     //sanitize input so only printable chars are left
     for (int i = 0;i < inputLen;i++){
         if (string[i] > 126 || string[i] < 32){
