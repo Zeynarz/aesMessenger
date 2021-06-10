@@ -12,32 +12,19 @@ int convertToByte(int target);
 //testing functions
 void printHex(int word[16]); 
 
-//TESTING
-void main(){
-    int plaintext[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
-    int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
-    encrypt(plaintext,key);
-}
-
 int* encrypt(int plaintext[16],int key[16]){
     //before round start
     addRoundKey(plaintext,key);
-    printf("Round 0\n");
-    printHex(plaintext);
     //main rounds
     for (int i = 1; i <= 9;i++){
         subBytes(plaintext,false);
         shiftRows(plaintext);
         mixColumns(plaintext);
         keySchedule(key,i);
-        printf("Round %d\n",i);
-        printHex(key);
         addRoundKey(plaintext,key);
     }
     //after main rounds
     keySchedule(key,10);
-    printf("Round %d\n",10);
-    printHex(key);
     subBytes(plaintext,false);
     shiftRows(plaintext);
     addRoundKey(plaintext,key);

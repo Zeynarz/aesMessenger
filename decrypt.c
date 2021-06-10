@@ -1,18 +1,15 @@
 #include "encrypt.h"
-char ciphertext[128] = "52755a614b6df85293f058d6e6687f30";
+char ciphertext[128] = "00000000000000000000000000000000";
 int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
 int cipher[16],cipherArr64[64];
 int allRoundKeys[11][16];
 //functions
 /* Todo:
-subBytes(int word[16],int isRotWord);
-keySchedule(int key[16],int round);
-addRoundKey(int plaintext[16],int key[16]);
 shiftRows(int plaintext[16]);
 mixColumns(int plaintext[16]);
 */
 void convertCipher(char* ciphertext,int cipherArr64[64]);
-void revSubBytes(int cipher[16],int isRotWord);
+void revSubBytes(int cipher[16]);
 void revAddRoundKey(int cipher[16],int key[16]);
 
 int main(){
@@ -29,32 +26,21 @@ int main(){
 
 void convertCipher(char* ciphertext,int cipherArr64[64]){
     int len = strlen(ciphertext);
-    int firstHex,secondHex;
+    char hex[5];
     if (len % 32 != 0){
         printf("Ciphertext length needs to be divisible by 16\n");
         exit(EXIT_FAILURE);
     }
-
+        
+    //convert hex to decimal
     for (int i = 0,j = 0;i < len/2;i++,j += 2){
-        // "61" will become  6 * 16 + 1 = 97  
-        if (0x61 <= ciphertext[j] && ciphertext[j] <= 0x66){ //means its a letter
-            firstHex = (ciphertext[j] - 0x61 + 10) * 16;
-
-        } else { //its a number
-            firstHex = (ciphertext[j] - 48) * 16;
-        }
-
-        if (0x61 <= ciphertext[j+1] && ciphertext[j] <= 0x66){ 
-            secondHex = (ciphertext[j+1] - 0x61 + 10);
-        } else {
-            secondHex = (ciphertext[j+1] - 48);
-        }
-
-        cipherArr64[i] = firstHex + secondHex;
+        sprintf(hex,"%c%c",ciphertext[j],ciphertext[j+1]);
+        cipherArr64[i] = strtol(hex,NULL,16);
     }
 }
 
-void revSubBytes(int cipher[16],int isRotWord){
+void revSubBytes(int cipher[16]){
+    int current,done;
     int subBox[16][16] = {
     {0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76},
     {0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0},
@@ -73,12 +59,30 @@ void revSubBytes(int cipher[16],int isRotWord){
     {0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf},
     {0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16}
         };
+    
+    //iterate through cipher
+    for (int index = 0;index < 16;index++){
+        //search through subBox
+        current = cipher[index] & 0xff;
+        done = false;
+        for (int first = 0;first < 16;first++){
+            if (done == true)
+                    break;
+            for (int second = 0;second < 16;second++){
+                if (subBox[first][second] == current){
+                    cipher[index] = (first * 16) + second;
+                    done = true;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 
 void revAddRoundKey(int cipher[16],int key[16]){
-
-
-
+    for (int i = 0;i < 16;i++){
+        cipher[i] =  (cipher[i] ^ key[i]) & 0xff;
+    }
 }
 

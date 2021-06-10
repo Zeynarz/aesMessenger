@@ -1,0 +1,67 @@
+#Plaintext With keySchedule
+Round 0
+00 00 00 00 
+00 00 00 00 
+00 00 00 00 
+00 00 00 00 
+
+Round 1
+6c 2d 6c 2d 
+58 1a 58 1a 
+58 1b 58 1b 
+c7 83 c7 83 
+
+Round 2
+a0 cc e1 8d 
+af f7 ed b5 
+ec b4 af f7 
+d8 1f 9c 5b 
+
+Round 3
+11 9c 3c f0 
+96 23 8c 7b 
+39 ce 22 96 
+27 7c a4 bb 
+
+Round 4
+23 fe 83 32 
+40 21 ef d6 
+0d 80 e1 34 
+27 1f ff 00 
+
+Round 5
+94 2b e9 9a 
+ac cf 62 f6 
+d3 10 b2 c5 
+02 59 e2 a6 
+
+Round 6
+b4 de 76 ad 
+e1 6c 4c f8 
+29 7a 8b 0d 
+e5 f8 5e bc 
+
+Round 7
+7f e0 d7 3b 
+44 6a 64 de 
+71 48 80 ce 
+98 24 3e c6 
+
+Round 8
+c3 62 f4 8e 
+cf e7 c1 5d 
+f3 f8 3b b6 
+75 15 6f ed 
+
+Round 9
+88 ab 1e d1 
+f8 5d de c1 
+80 3b 43 b6 
+4d 1c 37 9e 
+
+Round 10
+2b c1 9e 0e 
+ac b3 2f ac 
+7c 04 04 f1 
+ba e2 91 4b 
+

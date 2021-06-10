@@ -1,0 +1,67 @@
+#Complete encryption of plaintext
+Round 0
+00 00 00 00 
+00 00 00 00 
+00 00 00 00 
+00 00 00 00 
+
+Round 1
+0f 4e 0f 4e 
+3b 79 3b 79 
+3b 78 3b 78 
+a4 e0 a4 e0 
+
+Round 2
+e2 77 a3 36 
+2a 8b 68 c9 
+93 da d0 99 
+08 21 4c 65 
+
+Round 3
+e0 b0 94 3d 
+06 b2 48 ca 
+47 5d e5 54 
+9b ac c6 0f 
+
+Round 4
+1d 75 56 c5 
+5f 35 c3 34 
+d1 87 66 b5 
+3a 0b d0 82 
+
+Round 5
+65 d3 2e d2 
+39 cb 65 4a 
+bf 09 fb 26 
+51 1a a5 6f 
+
+Round 6
+3c c8 36 77 
+87 8c 12 9a 
+55 dc 33 67 
+6b 08 6e c1 
+
+Round 7
+11 4f b4 47 
+a0 8c 69 f3 
+c2 83 05 8c 
+0c 4d 4b ca 
+
+Round 8
+10 1b f3 8a 
+08 b2 be 64 
+2e 1c 4f 35 
+97 dc 28 a1 
+
+Round 9
+2b 7b 82 5b 
+36 7b 41 09 
+cb 76 c5 31 
+aa d0 2a 35 
+
+Round 10
+52 4b 93 e6 
+75 6d f0 68 
+5a f8 58 7f 
+61 52 d6 30 
+
