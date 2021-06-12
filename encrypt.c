@@ -7,10 +7,15 @@ void shiftRows(int plaintext[16]);
 void mixColumns(int plaintext[16]);
 int* cpyArray(int src[16],int dest[16]);
 int* encrypt(int plaintext[16],int key[16]);
+int gfMultiply(int num1,int num2);
 int convertToByte(int target);
 
 //testing functions
 void printHex(int word[16]); 
+
+void main(){
+    gfMultiply(2,3);
+}
 
 int* encrypt(int plaintext[16],int key[16]){
     //before round start
@@ -115,27 +120,16 @@ void keySchedule(int roundkey[16],int round){
 
 void shiftRows(int word[16]){
     int temp[16];
-    //cpy array
     cpyArray(word,temp);
-    for (int index = 1;index < 4;index++){
-        word[index] = temp[index+4];
-        word[index+4] = temp[index+8];
-        word[index+8] = temp[index+12];
-        word[index+12] = temp[index];
-        cpyArray(word,temp);
+    for (int row = 1;row <= 3;row++){
+        for (int index = row;index < 4;index++){
+            word[index] = temp[index+4];
+            word[index+4] = temp[index+8];
+            word[index+8] = temp[index+12];
+            word[index+12] = temp[index];
+            cpyArray(word,temp);
+        }
     }
-    for (int index = 2;index < 4;index++){
-        word[index] = temp[index+4];
-        word[index+4] = temp[index+8];
-        word[index+8] = temp[index+12];
-        word[index+12] = temp[index];
-        cpyArray(word,temp);
-    }
-    int index = 3;
-    word[index] = temp[index+4];
-    word[index+4] = temp[index+8];
-    word[index+8] = temp[index+12];
-    word[index+12] = temp[index];
 }
 
 void mixColumns(int plaintext[16]){
@@ -175,6 +169,24 @@ void mixColumns(int plaintext[16]){
         }
     }
     cpyArray(temp,plaintext);
+}
+
+int gfMultiply(int num1,int num2){
+    int bin1[8] = {0,0,0,0,0,0,0,0};
+    int bin2[8] = {0,0,0,0,0,0,0,0};
+
+    num1 &= 0xff;
+    num2 &= 0xff;
+
+    for (int i = 0;num1 > 0 && i > 8;i++){
+        bin1[abs(i - 7)] = (num1 % 2);
+        bin2[abs(i - 7)] = (num2 % 2);
+        num1 /= 2;
+        num2 /= 2;
+    }
+    
+    printf("%d %d\n",num1,num2);
+    return 1;
 }
 
 void addRoundKey(int word[16],int key[16]){

@@ -1,15 +1,16 @@
 #include "encrypt.h"
-char ciphertext[128] = "00000000000000000000000000000000";
+char ciphertext[128] = "4344494a4344494a4344494a4344494a";
 int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
 int cipher[16],cipherArr64[64];
 int allRoundKeys[11][16];
 //functions
 /* Todo:
-shiftRows(int plaintext[16]);
 mixColumns(int plaintext[16]);
 */
 void convertCipher(char* ciphertext,int cipherArr64[64]);
 void revSubBytes(int cipher[16]);
+void revShiftRows(int cipher[16]);
+void revMixColumns(int cipher[16]);
 void revAddRoundKey(int cipher[16],int key[16]);
 
 int main(){
@@ -22,6 +23,9 @@ int main(){
 
     convertCipher(ciphertext,cipherArr64); 
     cpyArray(cipherArr64,cipher); //so only 16 bytes
+    printHex(cipher);
+    revMixColumns(cipher);
+    printHex(cipher);
 }
 
 void convertCipher(char* ciphertext,int cipherArr64[64]){
@@ -79,10 +83,52 @@ void revSubBytes(int cipher[16]){
     }
 }
 
+void revShiftRows(int cipher[16]){
+    int temp[16];
+    cpyArray(cipher,temp);
+    for (int row = 1;row <= 3;row++){
+        for (int index = row;index <= 3;index++){
+            cipher[index] = temp[index+12];
+            cipher[index+4] = temp[index];
+            cipher[index+8] = temp[index+4];
+            cipher[index+12] = temp[index+8];
+            cpyArray(cipher,temp);
+        }
+    }
+}
+
+void revMixColumns(int cipher[16]){
+    int matrix[16] = {
+              0xe,0xb,0xd,0x9,                                  
+              0x9,0xe,0xb,0xd,   
+              0xd,0x9,0xe,0xb,
+              0xb,0xd,0x9,0xe   
+        };                                              
+    int temp[16];                                       
+    int current;                                        
+    int letter,num,product;                             
+    int final = 0;                                      
+    for (int j = 0;j < 4;j++){ 
+        for (int n = 0;n < 4;n++){ 
+            for (int i = 0;i < 4;i++){ 
+                letter = cipher[i+j*4];                                                       
+                num = matrix[i+n*4];
+                product = 0;                  
+                //Galois Field multiplication
+                product = letter * num;
+                final ^= product;
+            }
+            temp[n+j*4] = convertToByte(final);
+            final = 0;
+        }
+    }
+    cpyArray(temp,cipher);
+}
 
 void revAddRoundKey(int cipher[16],int key[16]){
     for (int i = 0;i < 16;i++){
         cipher[i] =  (cipher[i] ^ key[i]) & 0xff;
     }
 }
+
 
