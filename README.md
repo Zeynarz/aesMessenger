@@ -11,3 +11,4 @@ https://www.youtube.com/watch?v=gP4PqVGudtg
 https://slideplayer.com/slide/250044/1/images/32/AES+Algorithm+-+MixColumns.jpg (good MixColumn picture)   
 https://www.angelfire.com/biz7/atleast/mix_columns.pdf (detailed information about MixColumns)   
 https://captanu.files.wordpress.com/2015/04/aes_sbox.jpg (subBytes table)  
+https://crypto.stackexchange.com/questions/9974/multiplication-division-in-galois-field-28 (Galois Field Multiplication)

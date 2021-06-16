@@ -1,3 +1,4 @@
 These are testcases for me to check if encryption and decryption is implemented correctly during development
 plaintext = ABCDABCDABCDABCD
 key = ABCDABCDABCDABCD
+//testcases are created by encrypt.c and checking if the ciphertext is the same as other websites
