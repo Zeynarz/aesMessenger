@@ -14,7 +14,7 @@ int convertToByte(int target);
 void printHex(int word[16]); 
 
 void main(){
-    gfMultiply(6,5);
+    gfMultiply(7,11);
 }
 
 int* encrypt(int plaintext[16],int key[16]){
@@ -174,61 +174,71 @@ void mixColumns(int plaintext[16]){
 int gfMultiply(int num1,int num2){
     int bin1[8] = {0,0,0,0,0,0,0,0};
     int bin2[8] = {0,0,0,0,0,0,0,0};
-    int tempBin[8];
-    int index,currentBin2;
-    int times1,times2,final = 0;
-    char stringBinary[17];
+    int bin1Degree[8] = {8,8,8,8,8,8,8,8}; //polynomial degrees
+    int bin2Degree[8] = {8,8,8,8,8,8,8,8}; //8 is just a placeholder
+    int binMultiply[64];
+    int index,degree1Index,degree2Index = 0;
 
     num1 &= 0xff;
     num2 &= 0xff;
     
     //turning number into binary
-    for (int i = 0;num1 > 0 && i < 8;i++){
-        index = abs(i - 7);
-        bin1[index] = (num1 % 2);
-        bin2[index] = (num2 % 2);
-        num1 /= 2;
-        num2 /= 2;
-    }
-    
-    //find amount of times 
     for (int i = 0;i < 8;i++){
-        if (bin1[i] == 1){
-            times1 = abs(i - 8);
+        index = abs(i - 7);
+        if (num1 > 0){
+            bin1[index] = (num1 % 2);
+            num1 /= 2;
+            if (bin1[index] == 1){
+                bin1Degree[degree1Index] = i;
+                degree1Index++;
+            }
         }
-        if (bin2[i] == 1){
-            times2 = abs(i - 8);
+        if (num2 > 0){
+            bin2[index] = (num2 % 2);
+            num2 /= 2;
+            if (bin2[index] == 1){
+                bin2Degree[degree2Index] = i;
+                degree2Index++;
+            }
         }
-        if (times1 != 0 && times2 != 0){
+        if (num1 == 0 && num2 == 0){
             break;
         }
     }
 
-    //EXAMPLE:  110 * 101
-    for (int i = 0; i < times2;i++){
-        //i = 0:currentBin2 = 1
-        currentBin2 = abs(i-7);
-        //i = 0: 110 * 1; i = 1: 110 * 0; i = 3: 110 * 1
-        for (int j = 0;j < times1;j++){
-            index = abs(j - 7);
-            tempBin[index] = bin1[index] * bin2[currentBin2];
+    index = 0;
+    for (int i = 0;i < degree1Index;i++){
+        for (int j = 0;j < degree2Index;j++){
+            //Law Of indices
+            binMultiply[index] = bin1Degree[i] + bin2Degree[j];
+            index++;
         }
-
-        //convert tempBin binary to decimal
-        for (int a = 0;a < 8;a++){
-            stringBinary[a] = tempBin[a] + 48;           
+    }
+    
+    //Addition is xor so if x**7 + x**7 = 0
+    //index is now the amount of valid elements in binMultiply
+    for (int i = 0;i < index;i++){
+        for (int j = 0;j < index;j++){
+            if (i == j)
+                continue;
+            
+            if (binMultiply[i] == 0)
+                break;
+    
+            //find duplicate number
+            //prob can find a better algorithm to do this
+            if (binMultiply[i] == binMultiply[j]){
+                binMultiply[i] = 0;
+                binMultiply[j] = 0;
+                break;
+            }
         }
-        for (int a = 0; a < i;a++){
-            strcat(stringBinary,"0");
-        }
-        //Xor (addition) 
-        //final ^= tempBin
-        for (int a = 0;a < 8;a++)
-            printf("%d",tempBin[a]);
-
     }
 
-    return 1;
+    for (int i = 0; i < index;i++)
+        printf("%d ",binMultiply[i]);
+
+    printf("\n");
 }
 
 void addRoundKey(int word[16],int key[16]){

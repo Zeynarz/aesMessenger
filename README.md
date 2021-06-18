@@ -8,7 +8,9 @@ Connect to other computers to talk to other people.All of the messages sent are 
 Discord: Zeynarz#8600  
 ## helpful sources:      
 https://www.youtube.com/watch?v=gP4PqVGudtg    
+https://www.youtube.com/watch?v=9TYfiO__m2A (Galois Fields)
+https://en.wikipedia.org/wiki/Finite_field_arithmetic (Galois Field Multiplication)
+https://crypto.stackexchange.com/questions/9974/multiplication-division-in-galois-field-28 (Galois Field Multiplication)
 https://slideplayer.com/slide/250044/1/images/32/AES+Algorithm+-+MixColumns.jpg (good MixColumn picture)   
 https://www.angelfire.com/biz7/atleast/mix_columns.pdf (detailed information about MixColumns)   
 https://captanu.files.wordpress.com/2015/04/aes_sbox.jpg (subBytes table)  
-https://crypto.stackexchange.com/questions/9974/multiplication-division-in-galois-field-28 (Galois Field Multiplication)
