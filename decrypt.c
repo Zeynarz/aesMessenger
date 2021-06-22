@@ -4,9 +4,6 @@ int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,
 int cipher[16],cipherArr64[64];
 int allRoundKeys[11][16];
 //functions
-/* Todo:
-mixColumns(int plaintext[16]);
-*/
 void convertCipher(char* ciphertext,int cipherArr64[64]);
 void revSubBytes(int cipher[16]);
 void revShiftRows(int cipher[16]);
@@ -24,8 +21,10 @@ int main(){
     convertCipher(ciphertext,cipherArr64); 
     cpyArray(cipherArr64,cipher); //so only 16 bytes
     printHex(cipher);
-    revMixColumns(cipher);
-    printHex(cipher);
+    for (int i = 1;i < 10;i++){
+        revMixColumns(cipher);
+        printHex(cipher);
+    }
 }
 
 void convertCipher(char* ciphertext,int cipherArr64[64]){
@@ -113,9 +112,8 @@ void revMixColumns(int cipher[16]){
             for (int i = 0;i < 4;i++){ 
                 letter = cipher[i+j*4];                                                       
                 num = matrix[i+n*4];
-                product = 0;                  
                 //Galois Field multiplication
-                product = letter * num;
+                product = gfMultiply(letter,num);
                 final ^= product;
             }
             temp[n+j*4] = convertToByte(final);

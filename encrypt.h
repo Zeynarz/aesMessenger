@@ -13,10 +13,6 @@ int convertToByte(int target);
 //testing functions
 void printHex(int word[16]); 
 
-void main(){
-    gfMultiply(7,11);
-}
-
 int* encrypt(int plaintext[16],int key[16]){
     //before round start
     addRoundKey(plaintext,key);
@@ -140,7 +136,6 @@ void mixColumns(int plaintext[16]){
               3,1,1,2
         };
     int temp[16];
-    int current;
     int letter,num,product;
     int final = 0;
     for (int j = 0;j < 4;j++){ //Whole thing
@@ -150,18 +145,7 @@ void mixColumns(int plaintext[16]){
                 num = matrix[i+n*4];
                 product = 0;
                 //Galois Field multiplication
-                if (num == 1){
-                    product = letter;
-                } else if (num == 2 || num == 3){
-                    if (letter < 0x80){
-                        product = letter<<1;
-                    } else {
-                        product = (letter << 1) ^ 0x1b;
-                    }
-                    if (num == 3){
-                        product ^= letter; //product = (letter * 2) ^ (letter*1);
-                    }
-                }
+                product = gfMultiply(letter,num);
                 final ^= product;
             }
             temp[n+j*4] = convertToByte(final);
@@ -177,11 +161,12 @@ int gfMultiply(int num1,int num2){
     int bin1Degree[8] = {8,8,8,8,8,8,8,8}; //polynomial degrees
     int bin2Degree[8] = {8,8,8,8,8,8,8,8}; //8 is just a placeholder
     int binMultiply[64];
-    int index,degree1Index,degree2Index = 0;
+    int index = 0,degree1Index = 0,degree2Index = 0;
+    int reducingPolynomial = 0x11b;
+    int converted = 0;
 
     num1 &= 0xff;
     num2 &= 0xff;
-    
     //turning number into binary
     for (int i = 0;i < 8;i++){
         index = abs(i - 7);
@@ -228,17 +213,42 @@ int gfMultiply(int num1,int num2){
             //find duplicate number
             //prob can find a better algorithm to do this
             if (binMultiply[i] == binMultiply[j]){
-                binMultiply[i] = 0;
-                binMultiply[j] = 0;
+                binMultiply[i] = 20;
+                binMultiply[j] = 20;
                 break;
             }
         }
     }
 
-    for (int i = 0; i < index;i++)
-        printf("%d ",binMultiply[i]);
+    int highestDegree = 0;
+    //convert the polynomial into binary (in array is reversed)
+    for (int i = 0;i < index;i++){
+        if (binMultiply[i] == 20)
+            continue;
 
-    printf("\n");
+        if (binMultiply[i] > highestDegree)
+            highestDegree = binMultiply[i];
+
+        converted += 1 * pow(2,binMultiply[i]);
+    }
+
+    //doesnt need to modulo
+    if (converted <= 0xff)
+        return converted;
+    
+    //modulo part
+    int xorTimes = highestDegree - 8;
+    int reduce;
+    for (int i = xorTimes;i >= 0;i--){
+        reduce = reducingPolynomial * (int)pow(2,i);
+        //if after xoring reducing polynomial,it becomes bigger,means that the reducing polynomial is 1 bit to big
+        if (converted < (converted ^ reduce))
+            continue;
+
+        converted ^= reducingPolynomial * (int)pow(2,i);
+    }
+
+    return converted;
 }
 
 void addRoundKey(int word[16],int key[16]){
