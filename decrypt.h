@@ -1,16 +1,16 @@
 #include "encrypt.h"
-char ciphertext[128] = "4344494a4344494a4344494a4344494a";
-int key[16] = {0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44,0x41,0x42,0x43,0x44};
 int cipher[16],cipherArr64[64];
 int allRoundKeys[11][16];
+char decryptedText[65] = "";
 //functions
 void convertCipher(char* ciphertext,int cipherArr64[64]);
 void revSubBytes(int cipher[16]);
 void revShiftRows(int cipher[16]);
 void revMixColumns(int cipher[16]);
 void revAddRoundKey(int cipher[16],int key[16]);
+const char* decrypt(char ciphertext[129],int key[16]);
 
-int main(){
+const char* decrypt(char ciphertext[129],int key[16]){
     //setup round Keys
     cpyArray(key,allRoundKeys[0]);
     for (int round = 1;round <= 10;round++){
@@ -19,12 +19,38 @@ int main(){
     }
 
     convertCipher(ciphertext,cipherArr64); 
-    cpyArray(cipherArr64,cipher); //so only 16 bytes
-    printHex(cipher);
-    for (int i = 1;i < 10;i++){
-        revMixColumns(cipher);
-        printHex(cipher);
+    
+    int convertTimes = strlen(ciphertext) / 32;
+    for (int i = 0;i < convertTimes;i++){
+        for (int j = 0;j < 16;j++)
+            cipher[j] = cipherArr64[j + i*16];
+        
+        //decryption
+        revAddRoundKey(cipher,allRoundKeys[10]);
+        revShiftRows(cipher);
+        revSubBytes(cipher);
+        for (int j = 9;j > 0;j--){
+            revAddRoundKey(cipher,allRoundKeys[j]);
+            revMixColumns(cipher);
+            revShiftRows(cipher);
+            revSubBytes(cipher);
+        }
+        revAddRoundKey(cipher,allRoundKeys[0]);
+
+        //check if printable and add into string
+        for (int j = 0;j < 16;j++){
+            if (cipher[j] == 0)
+                break;
+
+            if (cipher[j] < 32 || cipher[j] > 126){
+                printf("Character %d not printable\n",cipher[j]);
+                puts("Probably Used Wrong Key");
+                exit(EXIT_FAILURE);
+            }
+            decryptedText[j + i*16] = cipher[j];
+        }
     }
+    return decryptedText;
 }
 
 void convertCipher(char* ciphertext,int cipherArr64[64]){
