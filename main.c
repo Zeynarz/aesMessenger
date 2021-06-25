@@ -8,13 +8,13 @@ int menuInput,keyIsSet = 0;
 int readInt();
 void menu();
 void sanitize(char* string); 
+void keyGen(char generatedKey[17]);
 int* convertToIntArr(char* string,int* tempArr);
-char* keyGen(char generatedKey[17]);
 
 int main(){
     puts("Enter numbers 1-5 to select from the menu");
     puts("Set the key to use for encryption and decryption before anything else");
-    puts("If you can't think of a good and secure key,you can use the generate key option to generate one for you");
+    puts("If you can't think of a secure key,you can use the generate key option to generate one for you");
     while (1){
         menu();
         menuInput = readInt();
@@ -33,21 +33,7 @@ int main(){
             sanitize(userInput);
             
             //encrypt user string into one big cipher text
-            int times = ceil((double)strlen(userInput) / 16);
-            char tempString[5];
-            for (int i = 0;i < times;i++){
-                for (int j = 0;j < 16;j++){
-                    convertStr[j] = userInput[j + 16*i];
-                }
-                cpyArray(convertToIntArr(convertStr,tempArr),plaintext);
-                cpyArray(key,tempKey); //this line is necessary because the encryption/decryption altered the key and the key can't be used again
-                encrypt(plaintext,tempKey);
-                //concatenate all into one string
-                for (int index = 0;index < 16;index++){
-                    sprintf(tempString,"%02x",plaintext[index]);
-                    strcat(ciphertext,tempString);
-                }
-            }
+            encrypt(userInput,key,ciphertext);
             printf("%s\n",ciphertext);
 
         } else if(menuInput == 2) {
@@ -63,7 +49,7 @@ int main(){
                 puts("Enter a valid cipher text (length divisible by 32)");
                 exit(EXIT_FAILURE);
             }
-            cpyArray(key,tempKey); 
+            cpyArray(key,tempKey);//this line is necessary because the encryption/decryption will alter the key and the key can't be used again 
             printf("%s\n",decrypt(userCipher,tempKey));
 
         } else if (menuInput == 3) {
@@ -76,6 +62,14 @@ int main(){
             }
             cpyArray(convertToIntArr(userKey,tempArr),key);
             keyIsSet = true;
+
+        } else if (menuInput == 4){
+            keyGen(generatedKey);
+            printf("Generated Key: %s\n",generatedKey);
+
+        } else if (menuInput == 5){
+            puts("Bye!");
+            exit(EXIT_SUCCESS);
         }
     }
 }
@@ -90,15 +84,20 @@ int* convertToIntArr(char* string,int* tempArr){
     }
     return tempArr;
 }
-char* keyGen(char generatedKey[16]){
-    int index,randomNum;
-    char printable[96] = " !\"#$%&'()*+,-./0123456789:;<=>?@1ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
-    for (int i = 0;i <= 15;i++){
-        getrandom(&randomNum,1,GRND_NONBLOCK); //get random num from /dev/urandom
-        index = floor(((double)randomNum/255) * 94);
+
+void keyGen(char generatedKey[17]){
+    int index;
+    char printable[95] = "!\"#$%&'()*+,-./0123456789:;<=>?@1ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
+
+    if (sodium_init() < 0){
+        puts("Sodium library failed to initialise");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0;i <= 15;i++){ 
+        index = randombytes_uniform(94); //use sodium.h to generate more secure random numbers
         generatedKey[i] = printable[index];
     }
-    return generatedKey;
 }
 void sanitize(char* string){
     int inputLen = strlen(string);
@@ -121,6 +120,7 @@ void sanitize(char* string){
 }
 
 void menu(){
+    puts("");
     puts("1: Encrypt");
     puts("2: Decrypt");
     puts("3: Insert key");

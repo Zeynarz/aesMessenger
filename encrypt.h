@@ -6,30 +6,50 @@ void addRoundKey(int plaintext[16],int key[16]);
 void shiftRows(int plaintext[16]); 
 void mixColumns(int plaintext[16]);
 int* cpyArray(int src[16],int dest[16]);
-int* encrypt(int plaintext[16],int key[16]);
 int gfMultiply(int num1,int num2);
 int convertToByte(int target);
+void encrypt(char userInput[65],int key[16],char ciphertext[129]);
 
 //testing functions
 void printHex(int word[16]); 
 
-int* encrypt(int plaintext[16],int key[16]){
-    //before round start
-    addRoundKey(plaintext,key);
-    //main rounds
-    for (int i = 1; i <= 9;i++){
+void encrypt(char userInput[65],int key[16],char ciphertext[129]){
+    int plaintext[16],tempKey[16];
+    char tempHex[3];
+
+    int times = ceil((double)strlen(userInput) / 16);
+    for (int i = 0;i < times;i++){ 
+        //cpy 16 bytes to plaintext
+        cpyArray(key,tempKey); // so after each time key is not tainted
+        for (int j = 0;j < 16;j++){
+            if ((j + i*16) < strlen(userInput)){
+                plaintext[j] = userInput[j + i*16];
+            } else {
+                plaintext[j] = 0;
+            }
+        }
+
+        //before round start
+        addRoundKey(plaintext,tempKey);
+        //main rounds
+        for (int j = 1; j <= 9;j++){
+            subBytes(plaintext,false);
+            shiftRows(plaintext);
+            mixColumns(plaintext);
+            keySchedule(tempKey,j);
+            addRoundKey(plaintext,tempKey);
+        }
+        //after main rounds
+        keySchedule(tempKey,10);
         subBytes(plaintext,false);
         shiftRows(plaintext);
-        mixColumns(plaintext);
-        keySchedule(key,i);
-        addRoundKey(plaintext,key);
+        addRoundKey(plaintext,tempKey);
+        
+        for (int j = 0;j < 16;j++){
+            sprintf(tempHex,"%02x",plaintext[j]);
+            strcat(ciphertext,tempHex);
+        }
     }
-    //after main rounds
-    keySchedule(key,10);
-    subBytes(plaintext,false);
-    shiftRows(plaintext);
-    addRoundKey(plaintext,key);
-    return plaintext;
 }
 
 void subBytes(int word[16],int isRotWord){ //isRotWord is treated like a bool
