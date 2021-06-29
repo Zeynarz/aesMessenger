@@ -7,5 +7,6 @@
 #include <time.h>
 #include <sys/random.h>
 #include <sodium.h>
+#include <ncurses.h>
 #define true 1
 #define false 0

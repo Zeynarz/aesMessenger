@@ -18,6 +18,9 @@ void encrypt(char userInput[65],int key[16],char ciphertext[129]){
     char tempHex[3];
 
     int times = ceil((double)strlen(userInput) / 16);
+    if (times > 4)
+        times = 4;
+
     for (int i = 0;i < times;i++){ 
         //cpy 16 bytes to plaintext
         cpyArray(key,tempKey); // so after each time key is not tainted

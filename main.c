@@ -1,9 +1,14 @@
 /* source code of own Aes implementation in C */
 #include "decrypt.h"
-int plaintext[16],key[16],tempArr[16],tempKey[16];
-char generatedKey[17],userKey[20],convertStr[17],userInput[70],userCipher[129]; 
+#include "network.h"
+int key[16],tempArr[16],tempKey[16];
+char generatedKey[17],userKey[20]; 
 char ciphertext[129] = "";
-int menuInput,keyIsSet = 0;
+int menuInput = 0,keyIsSet = 0;
+
+int serverFd = -1,clientFd = -1,connectionFd = -1;
+char sendBuffer[200],recvBuffer[200];
+char plaintext[65];
 //functions
 int readInt();
 void menu();
@@ -25,33 +30,76 @@ int main(){
 
         if (menuInput == 1){ 
             if (!keyIsSet){
-                puts("Please set the key first before encrypting");
+                puts("Please set the key first before starting the server");
                 continue;
             }
-            puts("Please enter the text you want to encrypt");
-            fgets(userInput,65,stdin); 
-            sanitize(userInput);
+
+            serverFd = startServer(4141);
+            if (serverFd == -1){
+                puts("Server failed to start");
+                exit(EXIT_FAILURE);
+            }
+            puts("Waiting for a connection");
+            clientFd = accept(serverFd,NULL,NULL);
+            if (clientFd == -1){
+                puts("Client failed to Connect");
+                continue;
+            }
+            puts("Connected!");
+                
+            while (true){
+                memset(sendBuffer,'\x00',sizeof(sendBuffer));
+                memset(recvBuffer,'\x00',sizeof(recvBuffer));
+                
+                read(clientFd,recvBuffer,128);
+                if (recvBuffer[0] == 0)
+                    break;
+
+                if (strlen(recvBuffer) > 128){
+                    puts("Something's wrong");
+                    exit(EXIT_FAILURE);
+                }
+               
+                cpyArray(key,tempKey); //this line is necessary because the decryption will alter the key and the key can't be used again
+                printf("Ciphertext received: %s\n",recvBuffer);
+                printf("Decrypted text: %s\n\n",decrypt(recvBuffer,tempKey)); 
+            }
             
-            //encrypt user string into one big cipher text
-            encrypt(userInput,key,ciphertext);
-            printf("%s\n",ciphertext);
+            close(clientFd);
+            close(serverFd);
+
+            puts("Server Closed");
 
         } else if(menuInput == 2) {
             if (!keyIsSet){
-                puts("Please set the key first before decrypting");
+                puts("Please set the key first before connecting to a server");
                 continue;
             }
 
-            puts("Please enter the cipher text you want to decrypt");
-            fgets(userCipher,129,stdin);
-            sanitize(userCipher);
-            if (strlen(userCipher) % 32 != 0){
-                puts("Enter a valid cipher text (length divisible by 32)");
-                exit(EXIT_FAILURE);
+            connectionFd = connectServer("127.0.0.1",4141);
+            if (connectionFd == -1){
+                puts("Failed to connect to server");
+                continue;
             }
-            cpyArray(key,tempKey);//this line is necessary because the encryption/decryption will alter the key and the key can't be used again 
-            printf("%s\n",decrypt(userCipher,tempKey));
+            puts("Connected!");
 
+            while (true){
+                memset(sendBuffer,'\x00',sizeof(sendBuffer));
+                memset(recvBuffer,'\x00',sizeof(recvBuffer));
+                memset(ciphertext,'\x00',sizeof(ciphertext));
+
+                fgets(sendBuffer,65,stdin);
+                sanitize(sendBuffer);
+                    
+                if (strlen(sendBuffer) > 64){
+                    puts("Something's wrong");
+                    exit(EXIT_FAILURE);
+                }
+
+                encrypt(sendBuffer,key,ciphertext);
+                write(connectionFd,ciphertext,128);
+            }
+            
         } else if (menuInput == 3) {
             puts("Please enter the key you want to use to encrypt and decrypt");
             fgets(userKey,17,stdin); 
@@ -101,14 +149,16 @@ void keyGen(char generatedKey[17]){
 }
 void sanitize(char* string){
     int inputLen = strlen(string);
+    char placeholder[3] = "";
     //remove \n char if there is one
     if (string[inputLen - 1] == 10){
         string[inputLen - 1] = 0;
         inputLen -= 1;
     } else {
-        //read in all the bytes
-        while (getchar() != 10)
+        //read in all the bytes 
+        while(getchar() != 10)
             continue;
+        
     }
     //sanitize input so only printable chars are left
     for (int i = 0;i < inputLen;i++){
@@ -121,8 +171,8 @@ void sanitize(char* string){
 
 void menu(){
     puts("");
-    puts("1: Encrypt");
-    puts("2: Decrypt");
+    puts("1: Start server");
+    puts("2: Connect server");
     puts("3: Insert key");
     puts("4: Generate random key");
     puts("5: Exit");

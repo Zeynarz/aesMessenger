@@ -5,30 +5,6 @@
 //functions
 int startServer(int port);
 int connectServer(char ip[20],int port);
-int main(){
-    int serverFd = -1,clientFd = -1;
-    char sendBuffer[1025],recvBuffer[1025];
-    serverFd = startServer(5000);
-    if (serverFd == -1){
-        printf("Server failed to start");
-        exit(EXIT_FAILURE);
-    }
-    puts("Waiting for connections");
-    clientFd = accept(serverFd,NULL,NULL);
-
-    strcpy(sendBuffer,"Connection made!");
-    write(clientFd,sendBuffer,strlen(sendBuffer));
-    close(serverFd);
-    
-    /*clientFd = connectServer("127.0.0.1",5000);
-    if (clientFd == -1)
-        exit(EXIT_FAILURE);
-
-    read(clientFd,recvBuffer,1024);
-    recvBuffer[strlen(recvBuffer) - 1] = 0;
-    printf("%s\n",recvBuffer);
-    close(clientFd);*/
-}
 
 int startServer(int port){
     //create socket and bind socket to port
