@@ -5,6 +5,7 @@
 //functions
 int startServer(int port);
 int connectServer(char ip[20],int port);
+int checkValidPort(int randomNum);
 
 int startServer(int port){
     //create socket and bind socket to port
@@ -53,4 +54,26 @@ int connectServer(char ip[20],int port){
     }
 
     return fd;
+}
+
+int checkValidPort(int randomNum){
+    int fd = -1;
+    struct sockaddr_in temp;
+    fd = socket(AF_INET,SOCK_STREAM,0);
+    memset(&temp,'0',sizeof(temp));    
+
+    temp.sin_family = AF_INET;
+    temp.sin_addr.s_addr = htonl(INADDR_ANY);
+    temp.sin_port = htons(randomNum);
+
+    if (fd == -1){
+        puts("Failed to create socket");
+        exit(EXIT_FAILURE);
+    }
+
+    if (bind(fd,(struct sockaddr *)&temp,sizeof(temp)) != -1){
+        shutdown(fd,SHUT_RDWR);
+        close(fd);  
+        return randomNum;
+    }
 }

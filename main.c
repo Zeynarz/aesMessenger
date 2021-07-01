@@ -17,6 +17,12 @@ void keyGen(char generatedKey[17]);
 int* convertToIntArr(char* string,int* tempArr);
 
 int main(){
+    if (sodium_init() < 0){
+        puts("Sodium library failed to initialise");
+        exit(EXIT_FAILURE);
+    }
+
+
     puts("Enter numbers 1-5 to select from the menu");
     puts("Set the key to use for encryption and decryption before anything else");
     puts("If you can't think of a secure key,you can use the generate key option to generate one for you");
@@ -34,7 +40,20 @@ int main(){
                 continue;
             }
 
-            serverFd = startServer(4141);
+            int serverPort = 1;
+            //generate random port and checking if it can be used
+            for (int i = 0;i < 11;i++){
+                serverPort = randombytes_uniform(20000) + 10000;
+                if (checkValidPort(serverPort) != -1)
+                    break;
+                if (i == 10){
+                    puts("Failed generating random port");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            printf("Port Used: %d\n",serverPort);
+            serverFd = startServer(serverPort);
             if (serverFd == -1){
                 puts("Server failed to start");
                 exit(EXIT_FAILURE);
@@ -45,8 +64,18 @@ int main(){
                 puts("Client failed to Connect");
                 continue;
             }
-            puts("Connected!");
-                
+            
+            initscr();
+            int inputBorder1 = LINES-4,inputBorder2 = LINES-1;
+            printw("Connected!\n");
+            //draw input border
+            for (int i = 0;i < COLS;i++){
+                mvprintw(inputBorder1,i,"=");
+                mvprintw(inputBorder2,i,"=");
+            }
+            refresh();
+
+            int printY = 1;
             while (true){
                 memset(sendBuffer,'\x00',sizeof(sendBuffer));
                 memset(recvBuffer,'\x00',sizeof(recvBuffer));
@@ -61,10 +90,13 @@ int main(){
                 }
                
                 cpyArray(key,tempKey); //this line is necessary because the decryption will alter the key and the key can't be used again
-                printf("Ciphertext received: %s\n",recvBuffer);
-                printf("Decrypted text: %s\n\n",decrypt(recvBuffer,tempKey)); 
+                mvprintw(printY,0,"Ciphertext received: %s",recvBuffer);
+                mvprintw(printY+1,0,"Decrypted text: %s",decrypt(recvBuffer,tempKey)); 
+                refresh();
+
+                printY += 3;
             }
-            
+            endwin();
             close(clientFd);
             close(serverFd);
 
@@ -76,28 +108,53 @@ int main(){
                 continue;
             }
 
-            connectionFd = connectServer("127.0.0.1",4141);
+            char portToConnect[7];
+            printf("Port number to use: ");
+            fgets(portToConnect,6,stdin);
+            sanitize(portToConnect);
+            //TODO need to do an ip and port input check here
+            connectionFd = connectServer("127.0.0.1",atoi(portToConnect)); 
+            
             if (connectionFd == -1){
                 puts("Failed to connect to server");
                 continue;
             }
-            puts("Connected!");
+
+            initscr();
+            int inputBorder1 = LINES-4,inputBorder2 = LINES-1;
+            printw("Connected!\n");
+            for (int i = 0;i < COLS;i++){
+                mvprintw(inputBorder1,i,"=");
+                mvprintw(inputBorder2,i,"=");
+            }
+            refresh();
 
             while (true){
                 memset(sendBuffer,'\x00',sizeof(sendBuffer));
                 memset(recvBuffer,'\x00',sizeof(recvBuffer));
                 memset(ciphertext,'\x00',sizeof(ciphertext));
 
-                fgets(sendBuffer,65,stdin);
-                sanitize(sendBuffer);
+                //the function receive 64 chars as input,doesnt include \n byte in string,so sendBuffer[len - 1] = '\x00'
+                mvgetnstr(LINES-3,0,sendBuffer,64);
+                //clear line
+                move(LINES-3,0);
+                clrtoeol();
+                refresh();
                     
                 if (strlen(sendBuffer) > 64){
-                    puts("Something's wrong");
+                    printw("Something's wrong\n");
+                    refresh();
                     exit(EXIT_FAILURE);
                 }
 
                 encrypt(sendBuffer,key,ciphertext);
-                write(connectionFd,ciphertext,128);
+                if (strlen(ciphertext) > 128){
+                    printw("Something's wrong\n");
+                    refresh();
+                    exit(EXIT_FAILURE);
+                }
+                write(connectionFd,ciphertext,strlen(ciphertext));
+
             }
             
         } else if (menuInput == 3) {
@@ -121,6 +178,7 @@ int main(){
         }
     }
 }
+
 int* convertToIntArr(char* string,int* tempArr){
     int len = strlen(string);
     for (int i = 0;i <= 15;i++){
@@ -137,16 +195,12 @@ void keyGen(char generatedKey[17]){
     int index;
     char printable[95] = "!\"#$%&'()*+,-./0123456789:;<=>?@1ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
 
-    if (sodium_init() < 0){
-        puts("Sodium library failed to initialise");
-        exit(EXIT_FAILURE);
-    }
-
     for (int i = 0;i <= 15;i++){ 
         index = randombytes_uniform(94); //use sodium.h to generate more secure random numbers
         generatedKey[i] = printable[index];
     }
 }
+
 void sanitize(char* string){
     int inputLen = strlen(string);
     char placeholder[3] = "";

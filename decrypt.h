@@ -43,6 +43,7 @@ const char* decrypt(char ciphertext[129],int key[16]){
                 break;
 
             if (cipher[j] < 32 || cipher[j] > 126){
+                endwin();
                 printf("Character %d not printable\n",cipher[j]);
                 puts("Probably Used Wrong Key");
                 exit(EXIT_FAILURE);
