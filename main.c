@@ -6,6 +6,7 @@ char generatedKey[17],userKey[20];
 char ciphertext[129] = "";
 int menuInput = 0,keyIsSet = 0;
 
+int printY = 1;
 int serverFd = -1,clientFd = -1,connectionFd = -1;
 char sendBuffer[200],recvBuffer[200];
 char plaintext[65];
@@ -15,6 +16,9 @@ void menu();
 void sanitize(char* string); 
 void keyGen(char generatedKey[17]);
 int* convertToIntArr(char* string,int* tempArr);
+void *receiveAndDecrypt(void *client);
+void *encryptAndSend(void *connection);
+void drawInputBorder();
 
 int main(){
     if (sodium_init() < 0){
@@ -22,6 +26,7 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
+    pthread_t requestThread,respondThread;
 
     puts("Enter numbers 1-5 to select from the menu");
     puts("Set the key to use for encryption and decryption before anything else");
@@ -58,6 +63,7 @@ int main(){
                 puts("Server failed to start");
                 exit(EXIT_FAILURE);
             }
+            
             puts("Waiting for a connection");
             clientFd = accept(serverFd,NULL,NULL);
             if (clientFd == -1){
@@ -66,36 +72,14 @@ int main(){
             }
             
             initscr();
-            int inputBorder1 = LINES-4,inputBorder2 = LINES-1;
             printw("Connected!\n");
-            //draw input border
-            for (int i = 0;i < COLS;i++){
-                mvprintw(inputBorder1,i,"=");
-                mvprintw(inputBorder2,i,"=");
-            }
+            drawInputBorder();
             refresh();
 
-            int printY = 1;
-            while (true){
-                memset(sendBuffer,'\x00',sizeof(sendBuffer));
-                memset(recvBuffer,'\x00',sizeof(recvBuffer));
-                
-                read(clientFd,recvBuffer,128);
-                if (recvBuffer[0] == 0)
-                    break;
+            pthread_create(&requestThread,NULL,encryptAndSend,(void *)&clientFd);
+            pthread_create(&respondThread,NULL,receiveAndDecrypt,(void *)&clientFd);
+            pthread_exit(NULL);
 
-                if (strlen(recvBuffer) > 128){
-                    puts("Something's wrong");
-                    exit(EXIT_FAILURE);
-                }
-               
-                cpyArray(key,tempKey); //this line is necessary because the decryption will alter the key and the key can't be used again
-                mvprintw(printY,0,"Ciphertext received: %s",recvBuffer);
-                mvprintw(printY+1,0,"Decrypted text: %s",decrypt(recvBuffer,tempKey)); 
-                refresh();
-
-                printY += 3;
-            }
             endwin();
             close(clientFd);
             close(serverFd);
@@ -121,41 +105,15 @@ int main(){
             }
 
             initscr();
-            int inputBorder1 = LINES-4,inputBorder2 = LINES-1;
             printw("Connected!\n");
-            for (int i = 0;i < COLS;i++){
-                mvprintw(inputBorder1,i,"=");
-                mvprintw(inputBorder2,i,"=");
-            }
+            drawInputBorder();
             refresh();
 
-            while (true){
-                memset(sendBuffer,'\x00',sizeof(sendBuffer));
-                memset(recvBuffer,'\x00',sizeof(recvBuffer));
-                memset(ciphertext,'\x00',sizeof(ciphertext));
-
-                //the function receive 64 chars as input,doesnt include \n byte in string,so sendBuffer[len - 1] = '\x00'
-                mvgetnstr(LINES-3,0,sendBuffer,64);
-                //clear line
-                move(LINES-3,0);
-                clrtoeol();
-                refresh();
-                    
-                if (strlen(sendBuffer) > 64){
-                    printw("Something's wrong\n");
-                    refresh();
-                    exit(EXIT_FAILURE);
-                }
-
-                encrypt(sendBuffer,key,ciphertext);
-                if (strlen(ciphertext) > 128){
-                    printw("Something's wrong\n");
-                    refresh();
-                    exit(EXIT_FAILURE);
-                }
-                write(connectionFd,ciphertext,strlen(ciphertext));
-
-            }
+            
+            pthread_create(&requestThread,NULL,encryptAndSend,(void *)&connectionFd);
+            pthread_create(&respondThread,NULL,receiveAndDecrypt,(void *)&connectionFd);
+            pthread_exit(NULL);
+            
             
         } else if (menuInput == 3) {
             puts("Please enter the key you want to use to encrypt and decrypt");
@@ -220,6 +178,79 @@ void sanitize(char* string){
             printf("Enter only Ascii printable characters\n");
             exit(EXIT_FAILURE);
         }
+    }
+}
+
+void *receiveAndDecrypt(void *client){
+    int *fdPointer = (int *)client;
+    int fd = *fdPointer;
+    while (true){
+        memset(recvBuffer,'\x00',sizeof(recvBuffer));
+        
+        read(fd,recvBuffer,128);
+        if (recvBuffer[0] == 0)
+            break;    
+
+        if (strlen(recvBuffer) > 128){
+            puts("Something's wrong");
+            exit(EXIT_FAILURE);
+        }
+        
+        cpyArray(key,tempKey); //this line is necessary because the decryption will alter the key and the key can't be used again
+        
+        attron(A_BOLD);
+        mvprintw(printY,0,"%s","Them: ");
+        attroff(A_BOLD);
+        mvprintw(printY,6,"%s",decrypt(recvBuffer,tempKey)); 
+
+        move(LINES-3,0);
+        refresh();
+
+        printY += 1;
+    }
+}
+
+void *encryptAndSend(void *connection){
+    int *fdPointer = (int *)connection;
+    int fd = *fdPointer;
+    while (true){
+        memset(sendBuffer,'\x00',sizeof(sendBuffer));
+        memset(ciphertext,'\x00',sizeof(ciphertext));
+
+        //the function receive 64 chars as input,doesnt include \n byte in string,so sendBuffer[len - 1] = '\x00'
+        mvgetnstr(LINES-3,0,sendBuffer,64);
+        
+        attron(A_BOLD);
+        mvprintw(printY,0,"%s","You: ");
+        attroff(A_BOLD); 
+        mvprintw(printY,5,"%s",sendBuffer);
+        //clear line
+        move(LINES-3,0);
+        clrtoeol();
+        refresh();
+            
+        if (strlen(sendBuffer) > 64){
+            printw("Something's wrong\n");
+            refresh();
+            exit(EXIT_FAILURE);
+        }
+
+        encrypt(sendBuffer,key,ciphertext);
+        if (strlen(ciphertext) > 128){
+            printw("Something's wrong\n");
+            refresh();
+            exit(EXIT_FAILURE);
+        }
+        write(fd,ciphertext,128);
+        printY += 1;
+    }
+}
+
+void drawInputBorder(){
+    int inputBorder1 = LINES-4,inputBorder2 = LINES-1;
+    for (int i = 0;i < COLS;i++){
+        mvprintw(inputBorder1,i,"=");
+        mvprintw(inputBorder2,i,"=");
     }
 }
 

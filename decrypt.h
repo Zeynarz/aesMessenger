@@ -11,6 +11,8 @@ void revAddRoundKey(int cipher[16],int key[16]);
 const char* decrypt(char ciphertext[129],int key[16]);
 
 const char* decrypt(char ciphertext[129],int key[16]){
+    //need to memset or else old decrypted text will still be here
+    memset(decryptedText,'\x00',sizeof(decryptedText));
     //setup round Keys
     cpyArray(key,allRoundKeys[0]);
     for (int round = 1;round <= 10;round++){
