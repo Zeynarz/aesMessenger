@@ -1,4 +1,4 @@
-#include "encrypt.h"
+#include "aesEncrypt.h"
 int cipher[16],cipherArr64[64];
 int allRoundKeys[11][16];
 char decryptedText[65] = "";
@@ -8,9 +8,9 @@ void revSubBytes(int cipher[16]);
 void revShiftRows(int cipher[16]);
 void revMixColumns(int cipher[16]);
 void revAddRoundKey(int cipher[16],int key[16]);
-const char* decrypt(char ciphertext[129],int key[16]);
+const char* aesDecrypt(char ciphertext[129],int key[16]);
 
-const char* decrypt(char ciphertext[129],int key[16]){
+const char* aesDecrypt(char ciphertext[129],int key[16]){
     //need to memset or else old decrypted text will still be here
     memset(decryptedText,'\x00',sizeof(decryptedText));
     //setup round Keys

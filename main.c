@@ -1,5 +1,4 @@
-/* source code of own Aes implementation in C */
-#include "decrypt.h"
+#include "aesDecrypt.h"
 #include "network.h"
 int key[16],tempArr[16],tempKey[16];
 int menuInput = 0,keyIsSet = false,usernameIsSet = false;
@@ -272,7 +271,7 @@ void *receiveAndDecrypt(void *connection){
         attron(A_BOLD);
         mvprintw(printY,0,"%s: ",connectionUsername);
         attroff(A_BOLD);
-        mvprintw(printY,strlen(connectionUsername) + 2,"%s",decrypt(recvBuffer,tempKey)); 
+        mvprintw(printY,strlen(connectionUsername) + 2,"%s",aesDecrypt(recvBuffer,tempKey)); 
 
         move(LINES-3,0);
         refresh();
@@ -320,7 +319,7 @@ void *encryptAndSend(void *connection){
             break;
         }
 
-        encrypt(sendBuffer,key,ciphertext);
+        aesEncrypt(sendBuffer,key,ciphertext);
         if (strlen(ciphertext) > 128){
             printw("Something's wrong\n");
             refresh();

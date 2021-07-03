@@ -1,3 +1,4 @@
+/* souce code of own aes implementation in C */
 #include "header.h"
 //operation functions
 void subBytes(int word[16],int isRotWord);
@@ -8,12 +9,12 @@ void mixColumns(int plaintext[16]);
 int* cpyArray(int src[16],int dest[16]);
 int gfMultiply(int num1,int num2);
 int convertToByte(int target);
-void encrypt(char userInput[65],int key[16],char ciphertext[129]);
+void aesEncrypt(char userInput[65],int key[16],char ciphertext[129]);
 
 //testing functions
 void printHex(int word[16]); 
 
-void encrypt(char userInput[65],int key[16],char ciphertext[129]){
+void aesEncrypt(char userInput[65],int key[16],char ciphertext[129]){
     int plaintext[16],tempKey[16];
     char tempHex[3];
 
