@@ -39,8 +39,9 @@ int main(){
 
 
     puts("Enter numbers 1-6 to select from the menu");
-    puts("Set the key to use for encryption and decryption before anything else");
-    puts("If you can't think of a secure key,you can use the generate key option to generate one for you");
+    puts("Set your key and username first before starting/connecting a server");
+    puts("The key is used for encrypting/decrypting and the username is displayed when talking to someone");
+    puts("To leave a conversation, type /leave");
     while (1){
         menu();
         menuInput = readInt();
@@ -92,6 +93,8 @@ int main(){
 
             printY = 1;
             endwin();
+            shutdown(clientFd,SHUT_RDWR);
+            shutdown(serverFd,SHUT_RDWR);
             close(clientFd);
             close(serverFd);
 
@@ -123,7 +126,7 @@ int main(){
             }
 
             puts("Trying to connect");
-            connectionFd = connectServer("127.0.0.1",atoi(portToConnect)); 
+            connectionFd = connectServer(ip,atoi(portToConnect)); 
             
             if (connectionFd == -1){
                 puts("Connection failed");
@@ -142,6 +145,7 @@ int main(){
 
             printY = 1;
             endwin();
+            shutdown(connectionFd,SHUT_RDWR);
             close(connectionFd);
 
         } else if (menuInput == 3) {
@@ -265,12 +269,16 @@ void *receiveAndDecrypt(void *connection){
         //this line is necessary because the decryption will alter the key and the key can't be used again
         cpyArray(key,tempKey); 
         
+        //so after printing it goes back to original typing cursor position
+        int currentY,currentX;
+        getyx(stdscr,currentY,currentX);
+
         attron(A_BOLD);
         mvprintw(printY,0,"%s: ",connectionUsername);
         attroff(A_BOLD);
         mvprintw(printY,strlen(connectionUsername) + 2,"%s",aesDecrypt(recvBuffer,tempKey)); 
 
-        move(LINES-3,0);
+        move(currentY,currentX);
         refresh();
 
         printY += 1;
