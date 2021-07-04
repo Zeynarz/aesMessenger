@@ -58,20 +58,17 @@ int main(){
                 continue;
             }
 
-            int serverPort = 1;
-            //generate random port and checking if it can be used
-            for (int i = 0;i < 11;i++){
-                serverPort = randombytes_uniform(20000) + 10000;
-                if (checkValidPort(serverPort) != -1)
-                    break;
-                if (i == 10){
-                    puts("Failed generating random port");
-                    exit(EXIT_FAILURE);
-                }
+            char serverPort[7];
+            printf("Port to use: ");
+            fgets(serverPort,6,stdin);
+            sanitize(serverPort);
+            if (checkValidPort(atoi(serverPort)) == -1){
+                puts("The port is busy");
+                memset(serverPort,'\x00',sizeof(serverPort));
+                break;
             }
 
-            printf("Port Used: %d\n",serverPort);
-            serverFd = startServer(serverPort);
+            serverFd = startServer(atoi(serverPort));
             if (serverFd == -1){
                 puts("Server failed to start");
                 exit(EXIT_FAILURE);
@@ -156,7 +153,7 @@ int main(){
                 exit(EXIT_FAILURE);
             }
             
-            printf("Key used: %s\n",userKey);
+            printf("Using Key: %s\n",userKey);
             cpyArray(convertToIntArr(userKey,tempArr),key);
             keyIsSet = true;
 
